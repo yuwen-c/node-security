@@ -1,0 +1,15 @@
+{
+  "name": "node-security",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "helmet": "^6.0.1"
+  },
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
