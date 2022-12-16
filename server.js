@@ -4,10 +4,28 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
+const passport = require('passport');
+const { Strategy } = require('passport-google-oauth20');
+
+require('dotenv').config();
+
+const GOOGLE_AUTH_OPTIONS = {
+  clientID: process.env.CLIENT_ID,
+  clientSecret: process.env.CLIENT_SECRET,
+  callbackURL: '/auth/google/callback',
+};
+
+const verifyCallback = (accessToken, refreshToken, profile, done) => {
+  console.log('google profile in verifyCallback', profile);
+  done(null, profile);
+};
+
+passport.use(new Strategy(GOOGLE_AUTH_OPTIONS, verifyCallback));
 
 const app = express();
-// 在app一開始就使用helmet middleware
+
 app.use(helmet());
+app.use(passport.initialize());
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -30,10 +48,28 @@ const checkLoggedIn = (req, res, next) => {
 //   next();
 // });
 
-app.get('/auth/google', (req, res) => {});
+// where google log in kicks off
+app.get(
+  '/auth/google',
+  passport.authenticate('google', {
+    scope: ['email', 'profile'],
+  })
+);
 
 // for google sends back the authorization code response
-app.get('/auth/google/callback', (req, res) => {});
+app.get(
+  '/auth/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: '/auth/failure',
+    successRedirect: '/',
+    session: false,
+  }),
+  (req, res) => {
+    console.log('google called us back!');
+  }
+);
+
+app.get('auth/failure', (req, res) => res.send('failed to log in!'));
 
 app.get('/auth/logout', (req, res) => {});
 
