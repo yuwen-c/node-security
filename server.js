@@ -5,22 +5,27 @@ const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const passport = require('passport');
-const { Strategy } = require('passport-google-oauth20');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+// require('https').globalAgent.options.rejectUnauthorized = false;
 
 require('dotenv').config();
 
-const GOOGLE_AUTH_OPTIONS = {
+const config = {
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
+};
+
+const GOOGLE_AUTH_OPTIONS = {
+  clientID: config.clientID,
+  clientSecret: config.CLIENT_SECRET,
   callbackURL: '/auth/google/callback',
 };
 
 const verifyCallback = (accessToken, refreshToken, profile, done) => {
-  console.log('google profile in verifyCallback', profile);
   done(null, profile);
 };
 
-passport.use(new Strategy(GOOGLE_AUTH_OPTIONS, verifyCallback));
+passport.use(new GoogleStrategy(GOOGLE_AUTH_OPTIONS, verifyCallback));
 
 const app = express();
 
@@ -52,7 +57,7 @@ const checkLoggedIn = (req, res, next) => {
 app.get(
   '/auth/google',
   passport.authenticate('google', {
-    scope: ['email', 'profile'],
+    scope: ['email'],
   })
 );
 
@@ -69,7 +74,7 @@ app.get(
   }
 );
 
-app.get('auth/failure', (req, res) => res.send('failed to log in!'));
+app.get('/auth/failure', (req, res) => res.send('failed to log in!'));
 
 app.get('/auth/logout', (req, res) => {});
 
